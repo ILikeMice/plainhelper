@@ -10,7 +10,7 @@
     "format": "biome format --write"
   },
   "dependencies": {
-    "konva": "^10.5.0",
+    "konva": "^10.7.1",
     "next": "16.3.5",
     "react": "19.2.8",
     "react-dom": "19.2.8",

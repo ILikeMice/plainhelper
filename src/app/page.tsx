@@ -8,7 +8,7 @@ import { stages } from "konva/lib/Stage";
 const anta = Anta({ weight: '400', subsets: ['latin'] , variable: "--font-anta"});
 
 export default function Home() {
-  const [rectPosition, setRectPosition] = useState({ x: 20, y: 50 })
+  const [rectPosition, setRectPosition] = useState({ x: 0, y: 0 })
   const [fuselSize,setFuselSize] = useState({width:100,height:100})
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const layerRef = useRef<Konva.Layer>(null)
@@ -42,16 +42,14 @@ export default function Home() {
     }
 
     group.destroyChildren()
-
     
     let centery = Math.round(canvasSize.height / (4*grid)) *2*grid;
     let centerx = Math.round(canvasSize.width / (4*grid)) *2*grid;
 
     setRectPosition({
-      x: centerx -fuselSize.height/2,
-      y: centery - fuselSize.width/2,
+      x: centerx,
+      y: centery
     });
-
 
     for (let x=0; x<=canvasSize.width; x += 2*grid) {
       if (x == Math.round(canvasSize.width / (4*grid)) *2*grid) {
@@ -91,13 +89,6 @@ export default function Home() {
     group.getLayer()?.batchDraw();
 }, [canvasSize]);
 
-  function modify(x: number,y: number,id: string):void {
-    console.log("lalal")
-    const object = layerRef.current?.findOne(`#${id}`)
-
-    object?.width(x)
-    object?.height(y)
-  }
 
   [document.getElementById("f_width"), document.getElementById("f_length")].forEach(function(e){ 
     e?.addEventListener("input", () => {
@@ -112,7 +103,7 @@ export default function Home() {
   })
   
   return (
-    <div className="flex min-h-screen justify-start overflow-x-hidden bg-[#090d1f] font-sans">
+    <div className="flex min-h-screen justify-start overflow-x-hidden bg-[#090d1f] font-sans text-white">
       <div className={`${anta.className} left-0 min-h-screen w-75 bg-zinc-800 p-4 flex flex-col  text-xl`}>
         <p className={`${anta.className} text-3xl w-full text-center pb-2`}>PlainHelper</p>
         <div className="w-full h-1 bg-zinc-700 rounded-full"></div>
@@ -120,17 +111,18 @@ export default function Home() {
 
         <div className="w-full h-fit p-1 flex justify-start flex-col">
           Fuselage
-          <div className="w-full ml-3 flex flex-row gap-2">
-            <div className="w-1/2 h-fit relative">
+          <div className="w-full ml-3 flex flex-row gap-2 mt-2">
+            <div className="w-1/2 h-fit relative"> 
               <input type="number" defaultValue={fuselSize.width} placeholder="Width" className="w-full" id="f_width"></input>
               <small className="absolute right-1 bottom-px">mm</small>
+              <small className="absolute left-[-10px] top-[-15px]"><small>Width</small></small>
             </div>  
             <div className="w-1/2 h-fit relative">
               <input type="number" defaultValue={fuselSize.height} placeholder="Length" className="w-full" id="f_length"></input>
               <small className="absolute right-1 bottom-px">mm</small>
+              <small className="absolute left-[-10px] top-[-15px]" ><small>Height</small></small>
             </div>  
           </div>
-          
         </div>
       </div>
       
@@ -158,6 +150,8 @@ export default function Home() {
               layerRef.current?.batchDraw()
             }}
             onDragEnd={(e) => setRectPosition(e.target.position())}
+            offsetX={fuselSize.width/2}
+            offsetY = {fuselSize.height/2}
           />
           </Layer>
         </Stage>
