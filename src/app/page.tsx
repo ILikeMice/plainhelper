@@ -1,6 +1,6 @@
 "use client"
 import { useEffect, useRef, useState } from 'react';
-import { Anta, Gruppo } from 'next/font/google';
+import { Anta, Gruppo, Hedvig_Letters_Sans } from 'next/font/google';
 import { Stage, Layer, Rect, Circle, Text, Group, Line } from 'react-konva';
 import Konva from "konva";
 import { stages } from "konva/lib/Stage";
@@ -8,7 +8,8 @@ import { stages } from "konva/lib/Stage";
 const anta = Anta({ weight: '400', subsets: ['latin'] , variable: "--font-anta"});
 
 export default function Home() {
-  const [rectPosition, setRectPosition] = useState({ x: 20, y: 50 });
+  const [rectPosition, setRectPosition] = useState({ x: 20, y: 50 })
+  const [fuselSize,setFuselSize] = useState({width:100,height:100})
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const layerRef = useRef<Konva.Layer>(null)
   const gridGroupRef = useRef<Konva.Group>(null)
@@ -42,16 +43,25 @@ export default function Home() {
 
     group.destroyChildren()
 
+    
     let centery = Math.round(canvasSize.height / (4*grid)) *2*grid;
+    let centerx = Math.round(canvasSize.width / (4*grid)) *2*grid;
+
+    setRectPosition({
+      x: centerx -fuselSize.height/2,
+      y: centery - fuselSize.width/2,
+    });
+
 
     for (let x=0; x<=canvasSize.width; x += 2*grid) {
       if (x == Math.round(canvasSize.width / (4*grid)) *2*grid) {
         group.add(new Konva.Line({
-        points: [x, 0, x, canvasSize.height],
-        stroke: "#3d3d3b",
-        strokeWidth: 2,
-        opacity: 1,
-      }));
+          points: [x, 0, x, canvasSize.height],
+          stroke: "#3d3d3b",
+          strokeWidth: 2,
+          opacity: 1,
+        }));
+
       }
       group.add(new Konva.Line({
         points: [x, 0, x, canvasSize.height],
@@ -95,9 +105,9 @@ export default function Home() {
       var width = Number(widththingy.value)
       let lengththingy = document.getElementById("f_length") as HTMLInputElement 
       var length = Number(lengththingy.value)
-      
-      modify(width, length, "fuselage")
-      
+      if (width >0 && length>0){
+       setFuselSize({width:width, height:length})
+      }
     })
   })
   
@@ -112,11 +122,11 @@ export default function Home() {
           Fuselage
           <div className="w-full ml-3 flex flex-row gap-2">
             <div className="w-1/2 h-fit relative">
-              <input type="number" placeholder="Width" className="w-full" id="f_width"></input>
+              <input type="number" defaultValue={fuselSize.width} placeholder="Width" className="w-full" id="f_width"></input>
               <small className="absolute right-1 bottom-px">mm</small>
             </div>  
             <div className="w-1/2 h-fit relative">
-              <input type="number" placeholder="Length" className="w-full" id="f_length"></input>
+              <input type="number" defaultValue={fuselSize.height} placeholder="Length" className="w-full" id="f_length"></input>
               <small className="absolute right-1 bottom-px">mm</small>
             </div>  
           </div>
@@ -135,18 +145,17 @@ export default function Home() {
             id="fuselage"
             x={rectPosition.x}
             y={rectPosition.y}
-            width={100}
-            height={100}
+            width={fuselSize.width}
+            height={fuselSize.height}
             fill="red"
             shadowBlur={10}
             draggable
-            onDragMove={(e) => { const thingy = e.target as Konva.Shape;
+            onDragMove={(e) => { const thingy = e.target as Konva.Shape
               thingy.position({
                 x: Math.round(thingy.x() / grid) * grid,
                 y: Math.round(thingy.y() / grid) * grid
               })
               layerRef.current?.batchDraw()
-
             }}
             onDragEnd={(e) => setRectPosition(e.target.position())}
           />
