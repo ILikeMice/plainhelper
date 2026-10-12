@@ -92,11 +92,42 @@ export default function Home() {
     group.getLayer()?.batchDraw();
 }, [canvasSize]);
 
-  stageRef.current?.on("wheel", (e) => {
+
+  const scaleby = 1.01
+  layerRef.current?.on("wheel", (e) => {
     e.evt.preventDefault()
 
-    let oldscale = stageRef.current?.scaleX()
-    let pointer = stageRef.current?.getPointerPosition() as Vector2d
+    let oldscale: any = layerRef.current?.scaleX()
+    let pointer = layerRef.current?.getRelativePointerPosition() as Vector2d
+
+    let stagex: any = layerRef.current?.x() 
+    let stagey: any = layerRef.current?.y() 
+
+    const mousepoint = {
+      x: (pointer.x - stagex)/oldscale,
+      y: (pointer.y - stagey)/oldscale
+    }
+
+    let dir;
+    let newscale;
+
+    if (e.evt.deltaY > 0) {
+      newscale = oldscale* scaleby
+    }  else {
+      newscale = oldscale / scaleby
+    }
+
+
+    layerRef.current?.scale({x: newscale, y: newscale})
+
+    const newpos = {
+      x: pointer.x - mousepoint.x*newscale,
+      y: pointer.y - mousepoint.y*newscale
+
+    }
+
+
+    layerRef.current?.position(newpos)
   })
   
   return (
