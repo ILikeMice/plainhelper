@@ -4,14 +4,16 @@ import { Anta, Gruppo, Hedvig_Letters_Sans } from 'next/font/google';
 import { Stage, Layer, Rect, Circle, Text, Group, Line } from 'react-konva';
 import Konva from "konva";
 import { stages } from "konva/lib/Stage";
+import { Vector2d } from "konva/lib/types";
 
 const anta = Anta({ weight: '400', subsets: ['latin'] , variable: "--font-anta"});
 
 export default function Home() {
   const [rectPosition, setRectPosition] = useState({ x: 0, y: 0 })
-  const [fuselSize,setFuselSize] = useState({width:100,height:100})
+  const [fuselSize,setFuselSize] = useState({width:100,height:100, weight:100})
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const layerRef = useRef<Konva.Layer>(null)
+  const stageRef = useRef<Konva.Stage>(null)
   const gridGroupRef = useRef<Konva.Group>(null)
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const grid = 25
@@ -34,6 +36,7 @@ export default function Home() {
     return () => resizeObserver.disconnect();
   }, []);
 
+  
   useEffect(() => {
     const group = gridGroupRef.current;
 
@@ -89,17 +92,11 @@ export default function Home() {
     group.getLayer()?.batchDraw();
 }, [canvasSize]);
 
+  stageRef.current?.on("wheel", (e) => {
+    e.evt.preventDefault()
 
-  [document.getElementById("f_width"), document.getElementById("f_length")].forEach(function(e){ 
-    e?.addEventListener("input", () => {
-      let widththingy = document.getElementById("f_width") as HTMLInputElement 
-      var width = Number(widththingy.value)
-      let lengththingy = document.getElementById("f_length") as HTMLInputElement 
-      var length = Number(lengththingy.value)
-      if (width >0 && length>0){
-       setFuselSize({width:width, height:length})
-      }
-    })
+    let oldscale = stageRef.current?.scaleX()
+    let pointer = stageRef.current?.getPointerPosition() as Vector2d
   })
   
   return (
@@ -108,26 +105,35 @@ export default function Home() {
         <p className={`${anta.className} text-3xl w-full text-center pb-2`}>PlainHelper</p>
         <div className="w-full h-1 bg-zinc-700 rounded-full"></div>
         
-
         <div className="w-full h-fit p-1 flex justify-start flex-col">
           Fuselage
-          <div className="w-full ml-3 flex flex-row gap-2 mt-2">
-            <div className="w-1/2 h-fit relative"> 
-              <input type="number" defaultValue={fuselSize.width} placeholder="Width" className="w-full" id="f_width"></input>
+          <div className="w-full ml-3 flex-wrap grid grid-cols-2 gap-2 mt-2 h-fit">
+            <div className="grow-1 h-fit relative"> 
+              <input type="number" value={fuselSize.width} onChange={(e) => setFuselSize({...fuselSize, width: Number(e.target.value)})} placeholder="Width" className="w-full" id="f_width"></input>
               <small className="absolute right-1 bottom-px">mm</small>
               <small className="absolute left-[-10px] top-[-15px]"><small>Width</small></small>
             </div>  
-            <div className="w-1/2 h-fit relative">
-              <input type="number" defaultValue={fuselSize.height} placeholder="Length" className="w-full" id="f_length"></input>
+            <div className="grow-1 h-fit relative">
+              <input type="number" value={fuselSize.height} onChange={(e) => setFuselSize({...fuselSize, height: Number(e.target.value)})} placeholder="Length" className="w-full" id="f_length"></input>
               <small className="absolute right-1 bottom-px">mm</small>
               <small className="absolute left-[-10px] top-[-15px]" ><small>Height</small></small>
-            </div>  
+            </div>
+
+            <div className="grow-2 h-fit relative"> 
+              <input type="number" value={fuselSize.weight} onChange={(e) => setFuselSize({...fuselSize, weight: Number(e.target.value)})} placeholder="Weight" className="w-full" id="f_weight"></input>
+              <small className="absolute right-1 bottom-px">g</small>
+              <small className="absolute left-[-10px] top-[-15px]"><small>Weight</small></small>
+            </div>
+
+            <div className="grow-2 border-white border border-x-0 text-center pb-1 justify-center text-nowrap"><small>x: {(rectPosition.x- Math.round(canvasSize.width / (4*grid)) *2*grid)} y: {(rectPosition.y- Math.round(canvasSize.height / (4*grid)) *2*grid)*-1}</small> </div>
           </div>
         </div>
+        
+        <div className="w-full h-1 bg-zinc-700 rounded-full mt-1"></div>
       </div>
-      
+  
       <div className="w-full h-screen" id="canvasthing" ref={canvasContainerRef}>
-        <Stage width={canvasSize.width} height={canvasSize.height} id="stage">
+        <Stage ref={stageRef} width={canvasSize.width} height={canvasSize.height} id="stage">
           <Layer ref={layerRef} id="coollayer">
             <Group ref={gridGroupRef} id="gridgroup" 
               x={0} 
@@ -148,6 +154,7 @@ export default function Home() {
                 y: Math.round(thingy.y() / grid) * grid
               })
               layerRef.current?.batchDraw()
+              setRectPosition(e.target.position())
             }}
             onDragEnd={(e) => setRectPosition(e.target.position())}
             offsetX={fuselSize.width/2}
