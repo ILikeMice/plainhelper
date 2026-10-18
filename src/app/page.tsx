@@ -18,6 +18,9 @@ export default function Home() {
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const grid = 25
 
+  
+  let a = 0
+
   useEffect(() => { // ts lowk ai cause i got ZERO idea on how to implement allat
     const container = canvasContainerRef.current;
     if (!container) return;
@@ -44,7 +47,7 @@ export default function Home() {
       return;
     }
 
-    group.destroyChildren()
+    group.removeChildren()
     
     let centery = Math.round(canvasSize.height / (4*grid)) *2*grid;
     let centerx = Math.round(canvasSize.width / (4*grid)) *2*grid;
@@ -53,7 +56,7 @@ export default function Home() {
       x: centerx,
       y: centery
     });
-
+    
     for (let x=0; x<=canvasSize.width; x += 2*grid) {
       if (x == Math.round(canvasSize.width / (4*grid)) *2*grid) {
         group.add(new Konva.Line({
@@ -89,19 +92,22 @@ export default function Home() {
       }));
     }
 
-    group.getLayer()?.batchDraw();
-}, [canvasSize]);
 
+    group.getLayer()?.draw();
+}, [canvasSize.width, canvasSize.height]);
 
   const scaleby = 1.01
-  layerRef.current?.on("wheel", (e) => {
-    e.evt.preventDefault()
+  useEffect(()=> {
+    const stage = stageRef.current as Konva.Stage
 
-    let oldscale: any = layerRef.current?.scaleX()
-    let pointer = layerRef.current?.getRelativePointerPosition() as Vector2d
+    const wheelhandle = (e: Konva.KonvaEventObject<WheelEvent>) => {
+      e.evt.preventDefault()
 
-    let stagex: any = layerRef.current?.x() 
-    let stagey: any = layerRef.current?.y() 
+       let oldscale: any = stageRef.current?.scaleX()
+    let pointer = stageRef.current?.getRelativePointerPosition() as Vector2d
+
+    let stagex: any = stageRef.current?.x() 
+    let stagey: any = stageRef.current?.y() 
 
     const mousepoint = {
       x: (pointer.x - stagex)/oldscale,
@@ -111,25 +117,35 @@ export default function Home() {
     let dir;
     let newscale;
 
+    
     if (e.evt.deltaY > 0) {
       newscale = oldscale* scaleby
     }  else {
       newscale = oldscale / scaleby
     }
 
-
-    layerRef.current?.scale({x: newscale, y: newscale})
+    stage.scale({x: newscale, y: newscale})
 
     const newpos = {
       x: pointer.x - mousepoint.x*newscale,
       y: pointer.y - mousepoint.y*newscale
+    }
+    
+    stage.position(newpos)
 
+    stage.batchDraw()
+
+    
     }
 
+    stage.on("wheel", wheelhandle);
 
-    layerRef.current?.position(newpos)
-  })
-  
+    return ()=> {
+      stage.off("wheel", wheelhandle)
+    }
+  }, [])
+
+
   return (
     <div className="flex min-h-screen justify-start overflow-x-hidden bg-[#090d1f] font-sans text-white">
       <div className={`${anta.className} left-0 min-h-screen w-75 bg-zinc-800 p-4 flex flex-col  text-xl`}>
