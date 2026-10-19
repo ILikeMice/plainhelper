@@ -14,10 +14,10 @@ export default function Home() {
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const layerRef = useRef<Konva.Layer>(null)
   const stageRef = useRef<Konva.Stage>(null)
+  const gridStageRef = useRef<Konva.Stage>(null)
   const gridLayerRef = useRef<Konva.Layer>(null)
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const grid = 25
-
   
   let a = 0
 
@@ -40,7 +40,8 @@ export default function Home() {
   }, []);
 
   
-  useEffect(() => {
+  
+  useEffect(() => { // grid stuffs
     const group = gridLayerRef.current;
 
     if (!group || canvasSize.width === 0 || canvasSize.height === 0) {
@@ -49,14 +50,11 @@ export default function Home() {
 
     group.removeChildren()
     
-    let centery = Math.round(canvasSize.height / (4*grid)) *2*grid;
-    let centerx = Math.round(canvasSize.width / (4*grid)) *2*grid;
+    let centery = canvasSize.height /2
+    let centerx = canvasSize.width /2
 
-    setRectPosition({
-      x: centerx,
-      y: centery
-    });
-    
+    setRectPosition({x: centerx, y: centery})
+
     for (let x=0; x<=canvasSize.width; x += 2*grid) {
       if (x == Math.round(canvasSize.width / (4*grid)) *2*grid) {
         group.add(new Konva.Line({
@@ -65,8 +63,8 @@ export default function Home() {
           strokeWidth: 2,
           opacity: 1,
         }));
-
       }
+
       group.add(new Konva.Line({
         points: [x, 0, x, canvasSize.height],
         stroke: "#3d3d3b",
@@ -94,11 +92,43 @@ export default function Home() {
 
 
     group.getLayer()?.draw();
-}, [canvasSize.width, canvasSize.height]);
+}, [canvasSize]);
 
-function test() {
-  console.log("testtest!")
-}  
+
+  const scaleby = 1.01
+  stageRef.current?.on("wheel", (e) => {
+    e.evt.preventDefault()
+
+    let oldscale: any = stageRef.current?.scaleX()
+    let pointer = stageRef.current?.getRelativePointerPosition() as Vector2d
+
+    let stagex: any = stageRef.current?.x() 
+    let stagey: any = stageRef.current?.y() 
+
+    const mousepoint = {
+      x: (pointer.x - stagex)/oldscale,
+      y: (pointer.y - stagey)/oldscale
+    }
+
+    let dir;
+    let newscale;
+
+    if (e.evt.deltaY > 0) {
+      newscale = oldscale* scaleby
+    }  else {
+      newscale = oldscale / scaleby
+    }
+
+
+    stageRef.current?.scale({x: newscale, y: newscale})
+
+    stageRef.current?.position({x: stageRef.current?.width() * (-newscale/2) + canvasSize.width/2, y: stageRef.current.height() * (-newscale/2) + canvasSize.height/2} )
+
+
+    console.log(stageRef.current?.width(), stageRef.current?.width() * (newscale/2), canvasSize.width, newscale)
+  })
+  
+
 
   return (
     <div className="flex min-h-screen justify-start overflow-x-hidden bg-[#090d1f] font-sans text-white">
@@ -133,7 +163,10 @@ function test() {
         <div className="w-full h-1 bg-zinc-700 rounded-full mt-1"></div>
       </div>
   
-      <div className="w-full h-screen" id="canvasthing" ref={canvasContainerRef}>
+      <div className="w-full h-screen" id="canvasthing" ref={canvasContainerRef}> 
+        <Stage ref={gridStageRed}>
+
+        </Stage>
         <Stage ref={stageRef} width={canvasSize.width} height={canvasSize.height} id="stage">
           <Layer ref={gridLayerRef} id="gridgroup" 
               x={0} 
