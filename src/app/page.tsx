@@ -14,7 +14,7 @@ export default function Home() {
   const canvasContainerRef = useRef<HTMLDivElement>(null);
   const layerRef = useRef<Konva.Layer>(null)
   const stageRef = useRef<Konva.Stage>(null)
-  const gridGroupRef = useRef<Konva.Group>(null)
+  const gridLayerRef = useRef<Konva.Layer>(null)
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const grid = 25
 
@@ -41,7 +41,7 @@ export default function Home() {
 
   
   useEffect(() => {
-    const group = gridGroupRef.current;
+    const group = gridLayerRef.current;
 
     if (!group || canvasSize.width === 0 || canvasSize.height === 0) {
       return;
@@ -96,55 +96,9 @@ export default function Home() {
     group.getLayer()?.draw();
 }, [canvasSize.width, canvasSize.height]);
 
-  const scaleby = 1.01
-  useEffect(()=> {
-    const stage = stageRef.current as Konva.Stage
-
-    const wheelhandle = (e: Konva.KonvaEventObject<WheelEvent>) => {
-      e.evt.preventDefault()
-
-       let oldscale: any = stageRef.current?.scaleX()
-    let pointer = stageRef.current?.getRelativePointerPosition() as Vector2d
-
-    let stagex: any = stageRef.current?.x() 
-    let stagey: any = stageRef.current?.y() 
-
-    const mousepoint = {
-      x: (pointer.x - stagex)/oldscale,
-      y: (pointer.y - stagey)/oldscale
-    }
-
-    let dir;
-    let newscale;
-
-    
-    if (e.evt.deltaY > 0) {
-      newscale = oldscale* scaleby
-    }  else {
-      newscale = oldscale / scaleby
-    }
-
-    stage.scale({x: newscale, y: newscale})
-
-    const newpos = {
-      x: pointer.x - mousepoint.x*newscale,
-      y: pointer.y - mousepoint.y*newscale
-    }
-    
-    stage.position(newpos)
-
-    stage.batchDraw()
-
-    
-    }
-
-    stage.on("wheel", wheelhandle);
-
-    return ()=> {
-      stage.off("wheel", wheelhandle)
-    }
-  }, [])
-
+function test() {
+  console.log("testtest!")
+}  
 
   return (
     <div className="flex min-h-screen justify-start overflow-x-hidden bg-[#090d1f] font-sans text-white">
@@ -181,11 +135,11 @@ export default function Home() {
   
       <div className="w-full h-screen" id="canvasthing" ref={canvasContainerRef}>
         <Stage ref={stageRef} width={canvasSize.width} height={canvasSize.height} id="stage">
-          <Layer ref={layerRef} id="coollayer">
-            <Group ref={gridGroupRef} id="gridgroup" 
+          <Layer ref={gridLayerRef} id="gridgroup" 
               x={0} 
               y={0}>
-            </Group>
+          </Layer>
+          <Layer ref={layerRef} id="coollayer">
             <Rect
             id="fuselage"
             x={rectPosition.x}
