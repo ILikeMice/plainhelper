@@ -18,6 +18,7 @@ export default function Home() {
   const gridLayerRef = useRef<Konva.Layer>(null)
   const [canvasSize, setCanvasSize] = useState({ width: 0, height: 0 });
   const grid = 25
+  const [scale,setScale]= useState(1)
   
   let a = 0
 
@@ -47,55 +48,70 @@ export default function Home() {
     if (!group || canvasSize.width === 0 || canvasSize.height === 0) {
       return;
     }
-
-    group.removeChildren()
+    console.log("a")
+    group.destroyChildren()
     
     let centery = canvasSize.height /2
     let centerx = canvasSize.width /2
 
     setRectPosition({x: centerx, y: centery})
 
-    for (let x=0; x<=canvasSize.width; x += 2*grid) {
-      if (x == Math.round(canvasSize.width / (4*grid)) *2*grid) {
+    let offsetxthing, offsetything, lengthything, lengthxthing;
+
+    if (scale <= 1) {
+      offsetxthing = canvasSize.height*(1/scale)
+      lengthxthing = canvasSize.height*(1/scale)
+      lengthything = canvasSize.width*(1/scale)
+      offsetything = canvasSize.width*(1/scale)
+    } else {
+      offsetxthing = 0
+      offsetything = 0
+      lengthxthing = canvasSize.height
+      lengthything = canvasSize.width
+    }
+
+    console.log(offsetything, lengthything)
+    for (let x=centerx- Math.ceil((centerx/grid)*1/scale)*grid; x<=centerx+ Math.ceil(centerx/grid)*grid*(1/scale); x += grid) {
+      if (x == centerx) {
         group.add(new Konva.Line({
-          points: [x, 0, x, canvasSize.height],
+          points: [x, -offsetxthing/2, x, lengthxthing],
           stroke: "#3d3d3b",
-          strokeWidth: 2,
+          strokeWidth: 2/scale,
           opacity: 1,
         }));
       }
 
       group.add(new Konva.Line({
-        points: [x, 0, x, canvasSize.height],
+        points: [x, -offsetxthing/2, x, lengthxthing],
         stroke: "#3d3d3b",
-        strokeWidth: 1,
+        strokeWidth: 1/scale,
         opacity: 0.3,
       }));
     }
 
-    for (let y=0; y <=canvasSize.height; y += 2*grid) {
-      if (y == Math.round(canvasSize.height / (4*grid)) *2*grid) {
+    for (let y=centery - Math.ceil((centery/grid)*1/scale)*grid; y <= centery + Math.ceil(centery/grid)*grid*(1/scale); y += grid) {
+      if (y == centery) {
         group.add(new Konva.Line({
-        points: [0, y, canvasSize.width, y],
+        points: [-offsetything/2, y, lengthything, y],
         stroke: "#3d3d3b",
-        strokeWidth: 2,
+        strokeWidth: 2/scale,
         opacity: 1,
       }));
       }
       group.add(new Konva.Line({
-        points: [0, y, canvasSize.width, y],
+        points: [-offsetything/2, y, lengthything, y],
         stroke:"#3d3d3b",
-        strokeWidth: 1,
+        strokeWidth: 1/scale,
         opacity: 0.3,
       }));
     }
 
 
     group.getLayer()?.draw();
-}, [canvasSize]);
+}, [canvasSize, scale]);
 
 
-  const scaleby = 1.01
+  const scaleby = 1.005
   stageRef.current?.on("wheel", (e) => {
     e.evt.preventDefault()
 
@@ -114,18 +130,18 @@ export default function Home() {
     let newscale;
 
     if (e.evt.deltaY > 0) {
-      newscale = oldscale* scaleby
+      newscale = Math.fround(oldscale * scaleby)
     }  else {
-      newscale = oldscale / scaleby
+      newscale = Math.fround(oldscale / scaleby)
     }
 
 
     stageRef.current?.scale({x: newscale, y: newscale})
 
     stageRef.current?.position({x: stageRef.current?.width() * (-newscale/2) + canvasSize.width/2, y: stageRef.current.height() * (-newscale/2) + canvasSize.height/2} )
+    setScale(newscale)
 
-
-    console.log(stageRef.current?.width(), stageRef.current?.width() * (newscale/2), canvasSize.width, newscale)
+    console.log(canvasSize.width, newscale)
   })
   
 
@@ -164,7 +180,7 @@ export default function Home() {
       </div>
   
       <div className="w-full h-screen" id="canvasthing" ref={canvasContainerRef}> 
-        <Stage ref={gridStageRed}>
+        <Stage ref={gridStageRef}>
 
         </Stage>
         <Stage ref={stageRef} width={canvasSize.width} height={canvasSize.height} id="stage">
